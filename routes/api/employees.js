@@ -14,7 +14,7 @@ router.get('/:id(\\d+)', (req, res) => {
     const employee = employees.find(emp => emp.id === id);
 
     if (!employee) {
-        return res.status(404).json({ error: 'Employee not found' });
+        return res.status(404).json({ message: 'Employee not found' });
     }
 
     res.json(employee);
@@ -30,16 +30,26 @@ router.get('/name/:name', (req, res) => {
 
 // Endpoint to add new employee
 router.post('/', (req, res) => {
-    const { name, email, age, department, } = req.body;
+    const { name, email, age, department } = req.body;
 
-    if (!name ||!email ||!age ||!department) return res.status(400).json({ message: 'Missing required fields' });
+    const nameValid = typeof name === 'string' && name.trim().length > 0;
+    const emailValid = typeof email === 'string' && email.includes('@');
+    const departmentValid = typeof department === 'string' && department.trim().length > 0;
+    const parsedAge = Number.parseInt(age, 10);
+    const ageValid = Number.isInteger(parsedAge) && parsedAge > 0;
+
+    if (!nameValid || !emailValid || !ageValid || !departmentValid) {
+        return res.status(400).json({ message: 'Invalid or missing fields: name, email, age (>0), department' });
+    }
+
+    const maxId = employees.reduce((max, e) => (e.id > max ? e.id : max), 0);
 
     const newEmployee = {
-        id: employees.length + 1,
-        name,
-        email,
-        age,
-        department,
+        id: maxId + 1,
+        name: name.trim(),
+        email: email.trim().toLowerCase(),
+        age: parsedAge,
+        department: department.trim(),
         added: new Date().toISOString()
     };
 
@@ -56,16 +66,41 @@ router.put('/:id(\\d+)', (req, res) => {
     const employee = employees.find(emp => emp.id === id);
 
     if (!employee) {
-        return res.status(404).json({ error: 'Employee does not exist' });
+        return res.status(404).json({ message: 'Employee does not exist' });
     }
 
-    if (name) employee.name = name;
-    if (email) employee.email = email;
-    if (age) employee.age = age;
-    if (department) employee.department = department;
+    if (name !== undefined) {
+        if (typeof name !== 'string' || name.trim().length === 0) {
+            return res.status(400).json({ message: 'Invalid name' });
+        }
+        employee.name = name.trim();
+    }
+
+    if (email !== undefined) {
+        if (typeof email !== 'string' || !email.includes('@')) {
+            return res.status(400).json({ message: 'Invalid email' });
+        }
+        employee.email = email.trim().toLowerCase();
+    }
+
+    if (age !== undefined) {
+        const parsedAge = Number.parseInt(age, 10);
+        if (!Number.isInteger(parsedAge) || parsedAge <= 0) {
+            return res.status(400).json({ message: 'Invalid age' });
+        }
+        employee.age = parsedAge;
+    }
+
+    if (department !== undefined) {
+        if (typeof department !== 'string' || department.trim().length === 0) {
+            return res.status(400).json({ message: 'Invalid department' });
+        }
+        employee.department = department.trim();
+    }
+
     employee.updated = new Date().toISOString();
 
-    res.json({mgs: 'Employee updated', employee});
+    res.json({ message: 'Employee updated', employee });
 });
 
 
@@ -77,18 +112,41 @@ router.put('/name/:name', (req, res) => {
     const employee = employees.find(emp => emp.name.toLowerCase() === name.toLowerCase());
 
     if (!employee) {
-        return res.status(404).json({ error: 'Employee does not exist' });
+        return res.status(404).json({ message: 'Employee does not exist' });
     }
 
-    const updateEmployee = req.body;
+    if (newName !== undefined) {
+        if (typeof newName !== 'string' || newName.trim().length === 0) {
+            return res.status(400).json({ message: 'Invalid newName' });
+        }
+        employee.name = newName.trim();
+    }
 
-    if (newName) employee.name = newName;
-    if (email) employee.email = email;
-    if (age) employee.age = age;
-    if (department) employee.department = department;
-    employee.name = updateEmployee ? updateEmployee.name : employee.name;
+    if (email !== undefined) {
+        if (typeof email !== 'string' || !email.includes('@')) {
+            return res.status(400).json({ message: 'Invalid email' });
+        }
+        employee.email = email.trim().toLowerCase();
+    }
 
-    res.json({mgs: 'Employee updated', employee});
+    if (age !== undefined) {
+        const parsedAge = Number.parseInt(age, 10);
+        if (!Number.isInteger(parsedAge) || parsedAge <= 0) {
+            return res.status(400).json({ message: 'Invalid age' });
+        }
+        employee.age = parsedAge;
+    }
+
+    if (department !== undefined) {
+        if (typeof department !== 'string' || department.trim().length === 0) {
+            return res.status(400).json({ message: 'Invalid department' });
+        }
+        employee.department = department.trim();
+    }
+
+    employee.updated = new Date().toISOString();
+
+    res.json({ message: 'Employee updated', employee });
 
 });
 
@@ -100,7 +158,7 @@ router.delete('/:id(\\d+)', (req, res) => {
     const index = employees.findIndex(emp => emp.id === id);
 
     if (index === -1) {
-        return res.status(404).json({ error: 'Employee does not exist' });
+        return res.status(404).json({ message: 'Employee does not exist' });
     }
 
     employees.splice(index, 1);
@@ -114,7 +172,7 @@ router.delete('/name/:name', (req, res) => {
     const index = employees.findIndex(emp => emp.name.toLowerCase() === name.toLowerCase());
 
     if (index === -1) {
-        return res.status(404).json({ error: 'Employee does not exist' });
+        return res.status(404).json({ message: 'Employee does not exist' });
     }
 
     employees.splice(index, 1);
