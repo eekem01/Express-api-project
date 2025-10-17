@@ -1,6 +1,5 @@
 const express = require('express');
 const router = express.Router();
-const moment = require('moment');
 const employees = require('../../Employees');
 
 
@@ -9,23 +8,22 @@ router.get('/', (req, res) => {
     res.json(employees);
 });
 
-// Endpoint to retrieve employee by name
-router.get('/:name', (req, res) => {
-    const employee = employees.find(e => e.name.toLowerCase() === req.params.name.toLowerCase());
-    if (!employee) return res.status(404).json({ message: 'Employee not found' });
-    res.json(employee);
-});
-
-
-// Endpoint to retrieve employee by id
-router.get('/:id', (req, res) => {
-    const { id } = req.params;
-    const employee = employees.find(emp => emp.id === parseInt(id));
+// Endpoint to retrieve employee by id (numeric)
+router.get('/:id(\\d+)', (req, res) => {
+    const id = Number(req.params.id);
+    const employee = employees.find(emp => emp.id === id);
 
     if (!employee) {
         return res.status(404).json({ error: 'Employee not found' });
     }
 
+    res.json(employee);
+});
+
+// Endpoint to retrieve employee by name
+router.get('/name/:name', (req, res) => {
+    const employee = employees.find(e => e.name.toLowerCase() === req.params.name.toLowerCase());
+    if (!employee) return res.status(404).json({ message: 'Employee not found' });
     res.json(employee);
 });
 
@@ -42,8 +40,7 @@ router.post('/', (req, res) => {
         email,
         age,
         department,
-        added: moment().format('YYYY-MM-DD HH:mm:ss')
-        //hireDate: moment(hireDate, 'YYYY-MM-DD').format('YYYY-MM-DD'),
+        added: new Date().toISOString()
     };
 
     employees.push(newEmployee);
@@ -51,12 +48,12 @@ router.post('/', (req, res) => {
 });
 
 
-// Endpoint to update employee list
-router.put('/', (req, res) => {
-    const { id } = req.params;
+// Endpoint to update an employee by id (numeric)
+router.put('/:id(\\d+)', (req, res) => {
+    const id = Number(req.params.id);
     const { name, email, age, department } = req.body;
 
-    const employee = employees.find(emp => emp.id === parseInt(id));
+    const employee = employees.find(emp => emp.id === id);
 
     if (!employee) {
         return res.status(404).json({ error: 'Employee does not exist' });
@@ -66,21 +63,21 @@ router.put('/', (req, res) => {
     if (email) employee.email = email;
     if (age) employee.age = age;
     if (department) employee.department = department;
-    employee.updated = moment().format('YYYY-MM-DD HH:mm:ss');
+    employee.updated = new Date().toISOString();
 
-    res.json({mgs: `Employee update`, employee});
+    res.json({mgs: 'Employee updated', employee});
 });
 
 
 // Endpoint to update an existing employee by name
-router.put('/:name', (req, res) => {
+router.put('/name/:name', (req, res) => {
     const { name } = req.params;
     const { newName, email, age, department } = req.body;
 
     const employee = employees.find(emp => emp.name.toLowerCase() === name.toLowerCase());
 
     if (!employee) {
-        return res.status(404).json({ error: 'Employee doee not exist' });
+        return res.status(404).json({ error: 'Employee does not exist' });
     }
 
     const updateEmployee = req.body;
@@ -91,16 +88,16 @@ router.put('/:name', (req, res) => {
     if (department) employee.department = department;
     employee.name = updateEmployee ? updateEmployee.name : employee.name;
 
-    res.json({mgs: `Employee updated`, employee});
+    res.json({mgs: 'Employee updated', employee});
 
 });
 
 
 // Endpoint to delete an existing employee by id
 
-router.delete('/:id', (req, res) => {
-    const { id } = req.params;
-    const index = employees.findIndex(emp => emp.id === parseInt(id));
+router.delete('/:id(\\d+)', (req, res) => {
+    const id = Number(req.params.id);
+    const index = employees.findIndex(emp => emp.id === id);
 
     if (index === -1) {
         return res.status(404).json({ error: 'Employee does not exist' });
@@ -112,7 +109,7 @@ router.delete('/:id', (req, res) => {
 
 
 // Endpoint to delete an employee by name
-router.delete('/:name', (req, res) => {
+router.delete('/name/:name', (req, res) => {
     const { name } = req.params;
     const index = employees.findIndex(emp => emp.name.toLowerCase() === name.toLowerCase());
 

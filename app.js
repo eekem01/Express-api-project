@@ -1,10 +1,12 @@
 const express = require('express');
-const employees = require('./Employees');
+const compression = require('compression');
 
 const app = express();
 
 // Middleware to parse JSON bodies 
-app.use(express.json()); 
+app.use(express.json());
+// Enable gzip/deflate compression for faster responses
+app.use(compression()); 
 
 // setup routes
 app.use('/api/employees', require('./routes/api/employees')); 
