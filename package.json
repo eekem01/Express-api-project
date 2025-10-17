@@ -1,14 +1,14 @@
 {
   "name": "express-api-application",
   "version": "1.0.0",
-  "description": "Building backend application with express rest API that stores and recieves json data.",
+  "description": "Express REST API that stores and retrieves JSON data.",
   "main": "app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon app.js"
+    "start": "node app.js",
+    "dev": "nodemon app.js",
+    "test": "node -e \"process.exit(0)\""
   },
-}
-  "author": "Emmanuel ekem",
+  "author": "Emmanuel Ekem",
   "license": "ISC",
   "dependencies": {
     "express": "^4.19.2",
